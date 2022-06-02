@@ -1,24 +1,16 @@
-import os
-import warnings
-from pathlib import Path
-
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-import seaborn as sns
-from IPython.display import display
-from pandas.api.types import CategoricalDtype
-
-from sklearn.impute import SimpleImputer
 
 
-class DataframeAnalysis:
+class DataAnalysis:
 
     def __init__(self, df: pd.DataFrame) -> None:
         self.df = df
 
     @property
     def columns_stats(self) -> pd.DataFrame:
+        """
+        Return Pandas DataFrame with columns statistics
+        """
         return self.df.describe().T
 
     @property
@@ -48,6 +40,7 @@ class DataframeAnalysis:
         """
         return [col for col in self.df.columns if self.df[col].isnull().any()]
 
+    @property
     def columns_missing_count(self, sort=True) -> pd.Series:
         """
         Return Pandas Series with missing values count for columns with
@@ -64,32 +57,34 @@ class DataframeAnalysis:
                 ascending=False)
         return columns_missing_count
 
+    @property
+    def unique_values(self, columns: list = []) -> pd.Series:
+        """
+        Return Pandas Series with unique values for each column of the
+        dataframe
 
-class PreProcessing:
+        :param columns: columns subset
+        """
+        columns_subset = columns if columns else self.df.columns
+        return self.df[columns_subset].apply(lambda col: col.unique())
 
-    @staticmethod
-    def fillna_type(df: pd.DataFrame, number_val=0, category_val='None'):
-        df_copy = df.copy(deep=True)
-        for name in df_copy.select_dtypes("number"):
-            df_copy[name] = df_copy[name].fillna(number_val)
-        for name in df.select_dtypes("category"):
-            df_copy[name] = df_copy[name].fillna(category_val)
-        return df_copy
+    @property
+    def unique_values_count(self, columns: list = []) -> pd.Series:
+        """
+        Return Pandas Series with count of unique values for each column of the
+        dataframe
 
-    @staticmethod
-    def encode_type(df: pd.DataFrame, columns_nominal,
-                    columns_values_ordinal):
-        df_copy = df.copy(deep=True)
+        :param columns: columns subset
+        """
+        columns_subset = columns if columns else self.df.columns
+        return self.df[columns_subset].apply(lambda col: col.nunique())
 
-        # Nominal categories
-        for name in columns_nominal:
-            df_copy[name] = df_copy[name].astype("category")
-            # Add a None category for missing values
-            if "None" not in df[name].cat.categories:
-                df_copy[name].cat.add_categories("None", inplace=True)
+    def columns_values_subset(self, df: pd.DataFrame, columns: list) -> list:
+        """
+        Return columns of the df parameter which are subset of the columns
+        of the object dataframe.
 
-        # Ordinal categories
-        for name, levels in columns_values_ordinal.items():
-            df_copy[name] = df_copy[name].astype(
-                CategoricalDtype(levels, ordered=True))
-        return df_copy
+        Useful for applying ordinal encoding safely
+        """
+        return [
+            col for col in columns if set(df[col]).issubset(set(self.df[col]))]
