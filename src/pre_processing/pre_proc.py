@@ -201,6 +201,17 @@ class PreProcessing:
         )
         return pca, X_pca, loadings
 
+    @staticmethod
+    def to_new_range(
+     value, new_range_min, new_range_max, range_min=0, range_max=1):
+        """
+        Map value from range [range_min, range_max] to new range
+        [new_range_min, new_range_max]
+        """
+        return (
+            ((value - range_min) / (range_max - range_min))
+            * (new_range_max - new_range_min) + new_range_min)
+
 
 class CrossFoldEncoder:
     def __init__(self, encoder, **kwargs):

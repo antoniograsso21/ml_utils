@@ -4,14 +4,16 @@ import pandas as pd
 class DataAnalysis:
 
     def __init__(self, df: pd.DataFrame) -> None:
-        self.df = df
+        self.df = df.copy()
 
     @property
-    def columns_stats(self) -> pd.DataFrame:
+    def columns_stats(self, transposed=True) -> pd.DataFrame:
         """
         Return Pandas DataFrame with columns statistics
+
+        :param transposed: if True applies transposition to stats
         """
-        return self.df.describe().T
+        return self.df.describe().T if transposed else self.df.describe()
 
     @property
     def columns_numerical(self) -> list:
